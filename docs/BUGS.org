@@ -1,0 +1,3 @@
+- bad environment => http 500
+  - http://history-server/api/v1/promote?environment=road
+  - http://history-server/api/v1/deploy?environment=road

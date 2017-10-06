@@ -1,0 +1,28 @@
+web:
+  restart: always
+  build: .
+  ports:
+    - "5000:5000"
+    - "5001:5001"
+  links:
+    - postgres:postgres
+  environment:
+    WEB_ENV: "docker-compose"
+
+tests:
+  links:
+    - postgres:postgres
+    - web:web
+#  restart: never
+  build: .
+  dockerfile: Dockertests
+  environment:
+    WEB_ENV: "docker-compose"
+
+postgres:
+  restart: always
+  image: postgres:9.4.4
+  environment:
+    POSTGRES_PASSWORD: "mysecretpassword"
+  ports:
+    - "5432:5432"

@@ -1,0 +1,37 @@
+FROM ubuntu:trusty
+
+USER root
+
+RUN set +ex
+RUN apt-get update && apt-get install --no-install-recommends gcc -y bsdmainutils libpq-dev postgresql-client python-dev python-pip python-virtualenv && apt-get clean
+
+RUN mkdir /opt/history-server
+
+# Get the python setup.
+
+ADD src/requirements.txt /opt/history-server/requirements.txt
+RUN pip install -r /opt/history-server/requirements.txt
+RUN mkdir /opt/history-server/scripts/
+ADD scripts/run-test-actions.sh /opt/history-server/scripts/run-test-actions.sh
+ADD scripts/swagger-tests.sh /opt/history-server/scripts/swagger-tests.sh
+ADD scripts/setup-test-db.sh /opt/history-server/scripts/setup-test-db.sh
+ADD scripts/migrate-db /opt/history-server/scripts/
+ADD scripts/unmigrate-db.sh /opt/history-server/scripts/
+ADD tests/ /opt/history-server/tests/
+
+# pg stuff
+ADD schema/*.sql /opt/history-server/schema/
+
+# command line and middleware systems
+ADD scripts/cli-tests.sh /opt/history-server/scripts/cli-tests.sh
+ADD scripts/ephemeral-tests.py /opt/history-server/scripts/ephemeral-tests.py
+
+ADD src/backend.py /opt/history-server/src/backend.py
+ADD src/history.py /opt/history-server/src/history.py
+
+
+ADD env.properties.toml /opt/history-server/src/env.properties.toml
+
+WORKDIR /opt/history-server/scripts
+
+CMD bash -ex ./run-test-actions.sh

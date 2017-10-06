@@ -1,0 +1,16 @@
+#!/bin/bash -ex
+
+READLINK=${READLINK:-"readlink"}
+pushd $(dirname $(dirname $(${READLINK} -f $0)))/schema
+
+export PGPASSWORD=${PGPASSWORD:-"mysecretpassword"}
+export PGHOST=${PGHOST:-"localhost"}
+export PGROLE=${PGROLE:-"postgres"}
+
+for migration in $(ls -1 -v | grep -E '[0-9]{3}' | grep 'up.sql$'); do
+    # failure is normal here, since only the last migration should occur
+    echo "Applying migration ..." $migration
+   psql -1 -U historyserverrole historyserverdb < $migration
+done
+
+popd

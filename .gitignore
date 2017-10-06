@@ -1,0 +1,13 @@
+*~
+target/*
+out/*
+lib/*
+*.properties
+*.xml
+.idea/*
+*.iml
+.vagrant/
+build_date
+git_hash
+*.pyc
+*.orig

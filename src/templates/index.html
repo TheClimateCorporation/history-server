@@ -1,0 +1,102 @@
+{# This simple template derives from ``base.html``. See ``base.html``
+more information about template inheritance. #}
+
+{%- extends "base.html" %}
+
+{# Loads some of the macros included with Flask-Bootstrap. We are using the
+utils module here to automatically render Flask's flashed messages in a
+bootstrap friendly manner #}
+{% import "bootstrap/utils.html" as utils %}
+
+{% block content %}
+<div class="container">
+  {%- with messages = get_flashed_messages(with_categories=True) %}
+  {%- if messages %}
+  <div class="row">
+    <div class="col-md-12">
+      {{utils.flashed_messages(messages)}}
+    </div>
+  </div>
+  {%- endif %}
+  {%- endwith %}
+  <div class="page-header">
+    <h1>Welcome to the History Server</h1>
+  </div>
+  <div class="row"><div class="col-md-8">
+      The history server is a record of the history of software as it
+      passes through different automated systems.
+  </div></div>
+
+  <p/>
+  <div class="row"><div class="col-md-8">
+      We focus on the builds, deployment, and promotion of
+      artifacts. Our aim is correct data; not complete data - while we
+      strive for completeness, its not feasible to attain every point
+      of data.
+
+      <p/>
+  </div></div>
+  <div class="row"><div class="col-md-8">
+      The history server is both a web UI and a web API. Users are
+      encouraged to create tools that rely on the API.
+
+  </div></div>
+  <p/>
+  <div class="row">
+  </div>
+
+  <div class="row"><div class="col-md-8">
+      <h3>Search the things!</h3>
+      <ul>
+        <li><a href="/search">Web Search</a></li>
+        <li><a href="/results?query_string=environment+%3D%3D+production+%26%26+insertion_time+%3E+2016-05-01+%26%26+insertion_time+%3C+2016-05-15&query_filter=ALL">Search for all production events in the first 15 days of May 2016</a></li>
+      </ul>
+  </div></div>
+
+  <div class="row"><div class="col-md-8">
+      <h3>API Documentation!</h3>
+      <ul>
+        <li><a href="/api/v1/swagger">Swagger API docs</a></li>
+        <li><a href="static/DESIGN.txt">Design in markdown, specifying the API queries</a></li>
+      </ul>
+  </div></div>
+
+
+  <div class="row"><div class="col-md-8">
+      <h3>Try some API queries!</h3>
+      <ul>
+        <li><a href="/api/v1/search?build_id=1">/api/v1/search?build_id=1</a></li>
+        <li><a href="/api/v1/deploy?environment=qa">/v1/deploy?environment=qa</a></li>
+        <li><a href="/api/v1/promote?environment=qa">/v1/promote?environment=qa</a></li>
+      </ul>
+  </div></div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <h4> about </h4>
+      built by the Climate Corporation!
+      <p/>
+      <small>
+        <p/>
+        current history server version is
+        <b><span id="version"></span></b>
+        <p/> built on date
+        <b><span id="builddate"></span></b>
+      </small>
+    </div>
+
+    <script>
+      $(function() {
+      $.get( "/propertiez",
+      function( data) {
+      $("#version").text(data.version.trim());
+      $("#builddate").text(data.build_date.trim());} )
+      });
+    </script>
+
+  </div>
+  <div class"col-md-4">
+  </div>
+</div>
+
+{%- endblock %}

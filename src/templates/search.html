@@ -1,0 +1,192 @@
+{# This simple template derives from ``base.html``. See ``base.html`` for
+   more information about template inheritance. #}
+{%- extends "base.html" %}
+
+{# Loads some of the macros included with Flask-Bootstrap. We are using the
+   utils module here to automatically render Flask's flashed messages in a
+   bootstrap friendly manner #}
+{% import "bootstrap/utils.html" as utils %}
+
+{% block content %}
+  <div class="container" id="searchcontainer">
+  {%- with messages = get_flashed_messages(with_categories=True) %}
+  {%- if messages %}
+    <div class="row">
+      <div class="col-md-12">
+        {{utils.flashed_messages(messages)}}
+      </div>
+    </div>
+  {%- endif %}
+  {%- endwith %}
+    <div class="page-header">
+      <h1>Ask History Server <small>search all the things</small></h1>
+    </div>
+    <div class="row">
+      <div class="col-md-8">
+        <div class="input-group">
+          {%- if query_string -%}
+            <input id="search_bar" type="text" class="form-control" value="{{query_string}}" placeholder="Enter a query string!">
+          {%- else -%}
+            <input id="search_bar" type="text" class="form-control" placeholder="Enter a query string!">
+          {%- endif -%}
+          <span class="input-group-btn">
+            <button id="search"class="btn btn-default" type="button">Search!</button>
+          </span>
+        </div><!-- /input-group -->
+      </div><!-- /.col-lg-6 -->
+      <div class="col-md-4">
+        <div class="dropdown">
+          <button class="btn btn-default dropdown-toggle btn-block" type="button" id="dropdownButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            ALL
+            <span class="caret" id="downcaret"></span>
+          </button>
+          <ul class="dropdown-menu" id="dropdownMenu" aria-labelledby="dropdownMenu">
+            <li><a href="#">ALL</a></li>
+            <li><a href="#">ARTIFACTS</a></li>
+            <li><a href="#">BUILDS</a></li>
+            <li><a href="#">DEPLOYS</a></li>
+            <li><a href="#">PROMOTES</a></li>
+          </ul>
+        </div>
+      </div><!-- /.col-md-4 -->
+    </div><!-- /.row -->
+    <div class="row">
+      <div class="col-md-12">
+        <small> Example query:
+<pre>environment == production &&
+     insertion_time > 2016-05-01 && insertion_time < 2016-05-15</pre>
+        </small>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <a id="query-help-link"> How do queries work? </a>
+      </div>
+    </div>
+     <div class="row" id="query-help-info" hidden="true">
+      <div class="col-md-12">
+        <div id="query-help">
+          A query is made up of one or more query clauses. Query clauses
+          are separated by && and follow the following format:
+          THING_ATTRIBUTE (COMPARATOR) VALUE. </br>
+
+          Some examples are provided below. </br>
+          <table class="table" id="thing-attribute-table">
+            <thead>
+              <tr>
+               <td><b>Comparators</b></td><td><b>Example Usages</b></td>
+              </tr>
+            </thead>
+            <tr>
+              <td><b>==</b></td><td>source == jenkins-builds</td>
+            </tr>
+            <tr>
+              <td><b><</b></td><td>build_id < 99</td>
+            </tr>
+            <tr>
+              <td><b>></b></td><td>version_id > 7</td>
+            </tr>
+            <tr>
+              <td><b><=</b></td><td>duration <= 9000</td>
+            </tr>
+            <tr>
+              <td><b>>=</b></td><td>insertion_time >= 1993-07-07T00:09:03.154724+00:00</td>
+            </tr>
+          </table>
+
+          It is also possible to search with a wildcard, by placing
+          a * in your value (requires "==" as the comparator).</br>
+          <table class="table" id="thing-attribute-table">
+            <thead>
+              <tr>
+                <td><b>Wildcard</b></td><td>job_url == https://builds.example.com/job/SRE/*</td>
+              </tr>
+            </thead>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <a id="legend-link"> What attributes does a thing have? </a>
+      </div>
+    </div>
+    <div class="row" id="legend-info" hidden="true">
+      <div class="col-md-12">
+        <div id="thing-attributes">
+        </div>
+      </div>
+    </div>
+  </div>
+   <div class="container" id="resultscontainer">
+      <div class="row">
+        <div class="panel panel-default">
+          <div class="panel-body" id="json">
+          {{ input_json }}
+          </div>
+        </div>
+      </div>
+    </div>
+  <script>
+  // Get the attributes for each thing and build a table
+  $tr = '<table class="table" id="thing-attribute-table"><thead><tr>' +
+        '<td><b>Thing</b></td><td><b>Attributes</b></td></thead>';
+
+  $(function() {
+    $.get( "/api/v1/thing_attributes", function( data ) {
+      for ( var key in data ) {
+        $tr += "<tr><td>" + key + "</td><td>";
+        $tr += data[key].join(", ");
+        $tr += "</td></tr>";
+      }
+      $( "#thing-attributes" ).html( $tr + "</table>" );
+    });
+  });
+
+  $( "document" ).ready(function(){
+
+    var queryFilter = $( "#dropdownButton" ).text();
+    $( "#dropdownMenu li a" ).click(function(){
+      queryFilter = $(this).text();
+      $( "#dropdownButton" ).html(queryFilter + '<span class="caret"></span>');
+    });
+
+    $( "#search" ).click(function() {
+      var inputText = $( "#search_bar" ).val();
+      var queryArgs = {};
+      queryArgs["query_string"] = inputText;
+      queryArgs["query_filter"] = $.trim(queryFilter);
+      var encodedQuery = $.param( queryArgs )
+      window.location.replace("/search?" + encodedQuery)
+    });
+
+    $('#search_bar').keypress(function(e){
+      if(e.which == 13){
+        $('#search').click();
+      }
+    });
+
+    // Legend functionality
+    $('#legend-link').click(function(){
+      _this = $( "#legend-info" )
+      if ( _this.is(":visible")){
+        _this.hide();
+      }
+      else _this.show();
+    });
+
+    $('#query-help-link').click(function(){
+      _this = $( "#query-help-info" )
+      if ( _this.is(":visible")){
+        _this.hide();
+      }
+      else _this.show();
+    });
+  });
+  // Show results json
+  var json_string = $( "#json" ).text();
+  console.log(json_string);
+  var json = jQuery.parseJSON( json_string );
+  $("#json").JSONView(json);
+  </script>
+{%- endblock %}

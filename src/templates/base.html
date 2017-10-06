@@ -1,0 +1,31 @@
+{%- extends "bootstrap/base.html" %}
+
+{% block title %}History Server{% endblock %}
+
+{% import "bootstrap/fixes.html" as fixes %}
+
+{% block head %}
+{{super()}}
+{{fixes.ie8()}}
+
+<script src="{{ url_for('static', filename='jquery-2.2.3.min.js') }}"}}></script>
+
+<script src="{{ url_for('static', filename='jquery.jsonview.js') }}"></script>
+
+{%- endblock %}
+
+{% block styles -%}
+    {{super()}}  {# do not forget to call super or Bootstrap's own stylesheets
+                    will disappear! #}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='search_interface.css') }}">
+
+<link rel="stylesheet" type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/jquery-jsonview/1.2.3/jquery.jsonview.css">
+
+{% endblock %}
+
+
+{% block bar %}
+{{flask_bootstrap.nav.frontend_top.render()}}
+{% endblock %}
